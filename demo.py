@@ -106,6 +106,7 @@ lr = cfg.TRAIN.LEARNING_RATE
 momentum = cfg.TRAIN.MOMENTUM
 weight_decay = cfg.TRAIN.WEIGHT_DECAY
 
+
 def _get_image_blob(im):
     """Converts an image into a network input.
   Arguments:
@@ -184,16 +185,15 @@ if __name__ == '__main__':
                                  'motorbike', 'person', 'pottedplant',
                                  'sheep', 'sofa', 'train', 'tvmonitor'])
 
-
     # initilize the network here.
     if args.net == 'vgg16':
         fasterRCNN = vgg16(pascal_classes, pretrained=False, class_agnostic=args.class_agnostic)
     elif args.net == 'res101':
         fasterRCNN = resnet(pascal_classes, 101, pretrained=False, class_agnostic=args.class_agnostic)
     elif args.net == 'res18':
-        fasterRCNN = resnet(imdb.classes, 18, pretrained=False, class_agnostic=args.class_agnostic)
+        fasterRCNN = resnet(pascal_classes, 18, pretrained=False, class_agnostic=args.class_agnostic)
     elif args.net == 'res34':
-        fasterRCNN = resnet(imdb.classes, 34, pretrained=False, class_agnostic=args.class_agnostic)
+        fasterRCNN = resnet(pascal_classes, 34, pretrained=False, class_agnostic=args.class_agnostic)
     elif args.net == 'res50':
         fasterRCNN = resnet(pascal_classes, 50, pretrained=False, class_agnostic=args.class_agnostic)
     elif args.net == 'res152':
@@ -204,7 +204,7 @@ if __name__ == '__main__':
 
     fasterRCNN.create_architecture()
 
-    print("load checkpoint %s" % (load_name))
+    print("load checkpoint %s" % load_name)
     if args.cuda > 0:
         checkpoint = torch.load(load_name)
     else:
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     print('load model successfully!')
 
     # 显示显存
-    handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)    
+    handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
     print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after load the weight')
     # pdb.set_trace()
@@ -268,12 +268,12 @@ if __name__ == '__main__':
     print('Loaded Photo: {} images.'.format(num_images))
 
     # 显示显存
-    handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)    
+    handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
     print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'before img itr')
     pynvml.nvmlShutdown()
 
-    while (num_images >= 0):
+    while num_images >= 0:
         total_tic = time.time()
         if webcam_num == -1:
             num_images -= 1
@@ -327,7 +327,6 @@ if __name__ == '__main__':
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)    
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
         # print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after go in net', num_images+1)
-
 
         scores = cls_prob.data
         boxes = rois.data[:, :, 1:5]
@@ -412,12 +411,12 @@ if __name__ == '__main__':
             print('Frame rate:', frame_rate)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        
-        #torch.cuda.empty_cache()
+
+        # torch.cuda.empty_cache()
         # 显示显存
-        #handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)    
-        #meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        #print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after empty cache')
+        # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
+        # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        # print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after empty cache')
 
     if webcam_num >= 0:
         cap.release()

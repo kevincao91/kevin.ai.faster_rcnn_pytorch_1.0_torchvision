@@ -38,20 +38,16 @@ except NameError:
 # <<<< obsolete
 
 
-class pascal_voc(imdb):
+class pascal_voc_face(imdb):
     def __init__(self, image_set, year, devkit_path=None):
-        imdb.__init__(self, 'voc_' + year + '_' + image_set)
+        imdb.__init__(self, 'voc_face_' + year + '_' + image_set)
         self._year = year
         self._image_set = image_set
         self._devkit_path = self._get_default_path() if devkit_path is None \
             else devkit_path
-        self._data_path = os.path.join(self._devkit_path, 'VOC' + self._year)
+        self._data_path = os.path.join(self._devkit_path, 'VOCFace' + self._year)
         self._classes = ('__background__',  # always index 0
-                         'aeroplane', 'bicycle', 'bird', 'boat',
-                         'bottle', 'bus', 'car', 'cat', 'chair',
-                         'cow', 'diningtable', 'dog', 'horse',
-                         'motorbike', 'person', 'pottedplant',
-                         'sheep', 'sofa', 'train', 'tvmonitor')
+                         'face')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
@@ -70,7 +66,7 @@ class pascal_voc(imdb):
                        'min_size': 2}
 
         assert os.path.exists(self._devkit_path), \
-            'VOCdevkit path does not exist: {}'.format(self._devkit_path)
+            'VOCFACEdevkit path does not exist: {}'.format(self._devkit_path)
         assert os.path.exists(self._data_path), \
             'Path does not exist: {}'.format(self._data_path)
 
@@ -114,7 +110,7 @@ class pascal_voc(imdb):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + self._year)
+        return os.path.join(cfg.DATA_DIR, 'VOCFACEdevkit' + self._year)
 
     def gt_roidb(self):
         """
@@ -231,16 +227,20 @@ class pascal_voc(imdb):
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
-
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) - 1
-            y1 = float(bbox.find('ymin').text) - 1
-            x2 = float(bbox.find('xmax').text) - 1
-            y2 = float(bbox.find('ymax').text) - 1
+            # x1 = float(bbox.find('xmin').text) - 1
+            # y1 = float(bbox.find('ymin').text) - 1
+            # x2 = float(bbox.find('xmax').text) - 1
+            # y2 = float(bbox.find('ymax').text) - 1
+            #
+            # # check
+            # if x1 < 0 or x2 < 0 or y1 < 0 or y2 < 0:
+            #     print('############################################')
 
-            # check
-            if x1 < 0 or x2 < 0 or y1 < 0 or y2 < 0:
-                print('############################################')
+            x1 = max(float(bbox.find('xmin').text) - 1, 0)
+            y1 = max(float(bbox.find('ymin').text) - 1, 0)
+            x2 = max(float(bbox.find('xmax').text) - 1, 0)
+            y2 = max(float(bbox.find('ymax').text) - 1, 0)
 
             diffc = obj.find('difficult')
             difficult = 0 if diffc == None else int(diffc.text)
@@ -375,7 +375,7 @@ class pascal_voc(imdb):
 
 
 if __name__ == '__main__':
-    d = pascal_voc('trainval', '2007')
+    d = pascal_voc_face('trainval', '2010')
     res = d.roidb
     from IPython import embed;
 
