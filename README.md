@@ -24,13 +24,13 @@ We benchmark our code thoroughly on pascal voc datasets, using four different ne
 
 model    | #GPUs | batch size | lr  | lr_decay | max_epoch  |  time/epoch | mem/GPU | mAP
 ---------|-------|------------|-----|----------|------------|-------------|---------|-----
-Res-18   | 1     | 1          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | N/A
+Res-18   | 1     | 1          | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | N/A
 Res-18   | 1     | 6          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | 54.7
 Res-34   | 1     | 1          | 1e-3| 8        | 7          |  N/A  hr    | N/A  MB | N/A
-Res-34   | 1     | 6          | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | N/A
+Res-34   | 1     | 6          | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | 67.4
 Res-50   | 1     | 1          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | 70.9
 Res-50   | 1     | 6          | 1e-3| 8        | 7          |  N/A  hr    | N/A  MB | N/A 
-Res-101  | 1     | 1          | 1e-3| 8        | 7          |  N/A  hr    | N/A  MB | N/A  
+Res-101  | 1     | 1          | 1e-3| 8        | 7          |  0.42 hr    | 3221 MB | N/A  
 Res-101  | 1     | 6          | 1e-3| 10       | 7          |  N/A  hr    | N/A  MB | N/A   
 
 * Our pre-trained model weight can simply import via torchvision.
@@ -162,7 +162,7 @@ Then you will find the detection results in folder $ROOT/images.
 Below are some detection results:
 
 <div style="color:#0000FF" align="center">
-<img src="images/img3_det_res101.jpg" width="430"/> <img src="images/img4_det_res101.jpg" width="430"/>
+<img src="images/img1_det_res101.jpg" width="430"/> <img src="images/img3_det_res101.jpg" width="430"/>
 </div>
 
 ## Webcam Demo
