@@ -26,12 +26,12 @@ model    | #GPUs | batch size | lr  | lr_decay | max_epoch  |  time/epoch | mem
 ---------|-------|------------|-----|----------|------------|-------------|---------|-----
 Res-18   | 1     | 1          | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | N/A
 Res-18   | 1     | 6          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | 54.7
-Res-34   | 1     | 1          | 1e-3| 8        | 7          |  N/A  hr    | N/A  MB | N/A
+Res-34   | 1     | 1          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | N/A
 Res-34   | 1     | 6          | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | 67.4
-Res-50   | 1     | 1          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | 70.9
-Res-50   | 1     | 6          | 1e-3| 8        | 7          |  N/A  hr    | N/A  MB | N/A 
-Res-101  | 1     | 1          | 1e-3| 8        | 7          |  0.42 hr    | 3221 MB | N/A  
-Res-101  | 1     | 6          | 1e-3| 10       | 7          |  N/A  hr    | N/A  MB | N/A   
+Res-50   | 1     | 1          | 1e-3| 5        | 7          |  0.38 hr    | 1965 MB | 70.9
+Res-50   | 1     | 6          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | N/A 
+Res-101  | 1     | 1          | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB | 73.2  
+Res-101  | 1     | 6          | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0   
 
 * Our pre-trained model weight can simply import via torchvision.
 * If not mentioned, the GPU we used is NVIDIA Titan X Pascal (12GB).
@@ -123,7 +123,7 @@ where 'bs' is the batch size with default 1. Alternatively, to train with resnet
                     --lr $LEARNING_RATE --lr_decay_step $DECAY_STEP \
                     --cuda
 ```
-Above, BATCH_SIZE and WORKER_NUMBER can be set adaptively according to your GPU memory size. **On Titan Xp with 12G memory, it can be up to 4**.
+Above, BATCH_SIZE and WORKER_NUMBER can be set adaptively according to your GPU memory size. **On Titan Xp with 12G memory, it can be up to 6**.
 
 If you have multiple (say 8) Titan Xp GPUs, then just use them all! Try:
 ```

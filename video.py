@@ -89,6 +89,9 @@ def parse_args():
     parser.add_argument('--webcam_num', dest='webcam_num',
                         help='webcam ID number',
                         default=-1, type=int)
+    parser.add_argument('--video', dest='video_file_name',
+                        help='Video File Name',
+                        default='video.mp4', type=str)
 
     args = parser.parse_args()
     return args
@@ -170,15 +173,15 @@ if __name__ == '__main__':
     load_name = os.path.join(input_dir,
                              'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
 
-    # pascal_classes = np.asarray(['__background__',
-    #                              'aeroplane', 'bicycle', 'bird', 'boat',
-    #                              'bottle', 'bus', 'car', 'cat', 'chair',
-    #                              'cow', 'diningtable', 'dog', 'horse',
-    #                              'motorbike', 'person', 'pottedplant',
-    #                              'sheep', 'sofa', 'train', 'tvmonitor'])
-
     pascal_classes = np.asarray(['__background__',
-                                 'face'])
+                                 'aeroplane', 'bicycle', 'bird', 'boat',
+                                 'bottle', 'bus', 'car', 'cat', 'chair',
+                                 'cow', 'diningtable', 'dog', 'horse',
+                                 'motorbike', 'person', 'pottedplant',
+                                 'sheep', 'sofa', 'train', 'tvmonitor'])
+
+    # pascal_classes = np.asarray(['__background__',
+    #                              'face'])
 
     # initilize the network here.
     if args.net == 'vgg16':
@@ -213,7 +216,7 @@ if __name__ == '__main__':
     # 显示显存
     handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after load the weight')
+    print('GPU memery used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after load the weight')
     # pdb.set_trace()
 
     print('load video')
@@ -252,14 +255,17 @@ if __name__ == '__main__':
     vis = True
 
     webcam_num = args.webcam_num
+    video_file_name = args.video_file_name
     # Set up webcam or get image from video
     if webcam_num >= 0:
         cap = cv2.VideoCapture(webcam_num)
         num_images = 0
     else:
         # use opencv open the video
-        cap = cv2.VideoCapture('video.mp4')
+        cap = cv2.VideoCapture(video_file_name)
+        # cap = cv2.VideoCapture('videocapture.avi')
         num_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        print('num_frame: ', num_frame)
         num_images = num_frame
 
     # get the inf of vedio,fps and size
@@ -276,14 +282,14 @@ if __name__ == '__main__':
     # 显示显存
     handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'before img itr')
+    print('GPU memery used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'before img itr')
     pynvml.nvmlShutdown()
 
-    while num_images >= 0:
+    while num_images > 0:
         total_tic = time.time()
         if webcam_num == -1:
             num_images -= 1
-        print(num_images)
+        # print('num_images: %d ' % num_images)
 
         # Get image from the webcam
         if webcam_num >= 0:
@@ -323,7 +329,7 @@ if __name__ == '__main__':
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        # print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'befor go in net', num_images+1)
+        # print('GPU memery used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'befor go in net', num_images+1)
 
         # pdb.set_trace()
         det_tic = time.time()
@@ -337,7 +343,7 @@ if __name__ == '__main__':
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        # print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after go in net', num_images+1)
+        # print('GPU memery used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after go in net', num_images+1)
 
         scores = cls_prob.data
         boxes = rois.data[:, :, 1:5]
@@ -409,9 +415,9 @@ if __name__ == '__main__':
             sys.stdout.flush()
 
         if vis and webcam_num == -1:
-            cv2.imshow('test', cv2.resize(im2show, None, fx=0.3, fy=0.3))
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
+            # cv2.imshow('test', cv2.resize(im2show, None, fx=0.3, fy=0.3))
+            # if cv2.waitKey(10) & 0xFF == ord('q'):
+            #     break
             # result_path = os.path.join(args.image_dir, str(num_images) + "_det.jpg")
             # cv2.imwrite(result_path, im2show)
             videowriter.write(im2show)  # write one frame into the output video
@@ -430,7 +436,7 @@ if __name__ == '__main__':
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        # print('GPU meme used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after empty cache')
+        # print('GPU memery used: %.10f G' % (meminfo.used / (1024 * 1024 * 1024)), 'after empty cache')
 
     if webcam_num >= 0:
         cap.release()
