@@ -186,6 +186,9 @@ if __name__ == '__main__':
 
     args.cfg_file = "cfgs/{}_ls.yml".format(args.net) if args.large_scale else "cfgs/{}.yml".format(args.net)
 
+    if args.dataset == "pascal_voc_face":
+        cfg_from_file("cfgs/pascal_voc_face.yml")
+
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
     if args.set_cfgs is not None:
@@ -309,15 +312,27 @@ if __name__ == '__main__':
 
         logger = SummaryWriter("logs")
 
+    # 设置学习率下降策略
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                           mode='min',
+                                                           factor=0.618,
+                                                           patience=20,
+                                                           verbose=True,
+                                                           threshold=0.005,
+                                                           threshold_mode='rel',
+                                                           cooldown=10,
+                                                           min_lr=0, eps=1e-08)
+
+    # 开始迭代训练
     for epoch in range(args.start_epoch, args.max_epochs + 1):
         # setting to train mode
         fasterRCNN.train()
         loss_temp = 0
         start = time.time()
 
-        if epoch % (args.lr_decay_step + 1) == 0:
-            adjust_learning_rate(optimizer, args.lr_decay_gamma)
-            lr *= args.lr_decay_gamma
+        # if epoch % (args.lr_decay_step + 1) == 0:
+        #     adjust_learning_rate(optimizer, args.lr_decay_gamma)
+        #     lr *= args.lr_decay_gamma
 
         data_iter = iter(dataloader)
         for step in range(iters_per_epoch):
@@ -364,8 +379,10 @@ if __name__ == '__main__':
                     fg_cnt = torch.sum(rois_label.data.ne(0))
                     bg_cnt = rois_label.data.numel() - fg_cnt
 
+                # 获取当前lr
+                lr_now = [group['lr'] for group in optimizer.param_groups][0]
                 print("[session %d][epoch %2d][iter %4d/%4d] loss: %.4f, lr: %.2e" \
-                      % (args.session, epoch, step, iters_per_epoch, loss_temp, lr))
+                      % (args.session, epoch, step, iters_per_epoch, loss_temp, lr_now))
                 print("\t\t\tfg/bg=(%d/%d), time cost: %f" % (fg_cnt, bg_cnt, end - start))
                 print("\t\t\trpn_cls: %.4f, rpn_box: %.4f, rcnn_cls: %.4f, rcnn_box %.4f" \
                       % (loss_rpn_cls, loss_rpn_box, loss_rcnn_cls, loss_rcnn_box))
@@ -382,6 +399,8 @@ if __name__ == '__main__':
 
                 loss_temp = 0
                 start = time.time()
+                # 更新学习率
+                scheduler.step(loss_temp)
 
         save_name = os.path.join(output_dir, 'faster_rcnn_{}_{}_{}.pth'.format(args.session, epoch, step))
         save_checkpoint({

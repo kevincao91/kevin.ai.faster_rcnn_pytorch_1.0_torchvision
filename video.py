@@ -126,15 +126,19 @@ def _get_image_blob(im):
     processed_ims = []
     im_scale_factors = []
 
-    for target_size in cfg.TEST.SCALES:
-        im_scale = float(target_size) / float(im_size_min)
-        # Prevent the biggest axis from being more than MAX_SIZE
-        if np.round(im_scale * im_size_max) > cfg.TEST.MAX_SIZE:
-            im_scale = float(cfg.TEST.MAX_SIZE) / float(im_size_max)
-        im = cv2.resize(im_orig, None, None, fx=im_scale, fy=im_scale,
-                        interpolation=cv2.INTER_LINEAR)
-        im_scale_factors.append(im_scale)
-        processed_ims.append(im)
+    # for target_size in cfg.TEST.SCALES:
+    #     im_scale = float(target_size) / float(im_size_min)
+    #     # Prevent the biggest axis from being more than MAX_SIZE
+    #     if np.round(im_scale * im_size_max) > cfg.TEST.MAX_SIZE:
+    #         im_scale = float(cfg.TEST.MAX_SIZE) / float(im_size_max)
+    #     im = cv2.resize(im_orig, None, None, fx=im_scale, fy=im_scale,
+    #                     interpolation=cv2.INTER_LINEAR)
+    #     im_scale_factors.append(im_scale)
+    #     processed_ims.append(im)
+
+    # no need to change size
+    im_scale_factors.append(1.0)
+    processed_ims.append(im_orig)
 
     # Create a blob to hold the input images
     blob = im_list_to_blob(processed_ims)
@@ -152,6 +156,28 @@ if __name__ == '__main__':
 
     print('Called with args:')
     print(args)
+
+    if torch.cuda.is_available() and not args.cuda:
+        print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+
+    np.random.seed(cfg.RNG_SEED)
+    if args.dataset == "pascal_voc":
+        pascal_classes = np.asarray(['__background__',
+                                     'aeroplane', 'bicycle', 'bird', 'boat',
+                                     'bottle', 'bus', 'car', 'cat', 'chair',
+                                     'cow', 'diningtable', 'dog', 'horse',
+                                     'motorbike', 'person', 'pottedplant',
+                                     'sheep', 'sofa', 'train', 'tvmonitor'])
+    elif args.dataset == "pascal_voc_face":
+        pascal_classes = None
+    elif args.dataset == "pascal_voc_0712":
+        pascal_classes = None
+    elif args.dataset == "coco":
+        pascal_classes = None
+    elif args.dataset == "imagenet":
+        pascal_classes = None
+    elif args.dataset == "vg":
+        pascal_classes = None
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
@@ -172,16 +198,6 @@ if __name__ == '__main__':
         raise Exception('There is no input directory for loading network from ' + input_dir)
     load_name = os.path.join(input_dir,
                              'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
-
-    # pascal_classes = np.asarray(['__background__',
-    #                              'aeroplane', 'bicycle', 'bird', 'boat',
-    #                              'bottle', 'bus', 'car', 'cat', 'chair',
-    #                              'cow', 'diningtable', 'dog', 'horse',
-    #                              'motorbike', 'person', 'pottedplant',
-    #                              'sheep', 'sofa', 'train', 'tvmonitor'])
-
-    pascal_classes = np.asarray(['__background__',
-                                 'face'])
 
     # initilize the network here.
     if args.net == 'vgg16':
@@ -252,7 +268,7 @@ if __name__ == '__main__':
     start = time.time()
     max_per_image = 100
     thresh = 0.05
-    vis = True
+    vis = False
 
     webcam_num = args.webcam_num
     video_file_name = args.video_file_name
@@ -308,12 +324,13 @@ if __name__ == '__main__':
             im_bgr = np.array(frame_bgr)
             # bgr -> rgb
             im_rgb = im_bgr[:, :, ::-1]
+        if len(im_rgb.shape) == 2:
             im_rgb = im_rgb[:, :, np.newaxis]
             im_rgb = np.concatenate((im_rgb, im_rgb, im_rgb), axis=2)
         # in image is rgb
         im_in = im_rgb
 
-        blobs, im_scales = _get_image_blob(im)
+        blobs, im_scales = _get_image_blob(im_in)
         assert len(im_scales) == 1, "Only single-image batch implemented"
         im_blob = blobs
         im_info_np = np.array([[im_blob.shape[1], im_blob.shape[2], im_scales[0]]], dtype=np.float32)
@@ -335,16 +352,16 @@ if __name__ == '__main__':
         # pdb.set_trace()
         det_tic = time.time()
 
-        with torch.no_grad():
-            rois, cls_prob, bbox_pred, \
-            rpn_loss_cls, rpn_loss_box, \
-            RCNN_loss_cls, RCNN_loss_bbox, \
-            rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
+        # with torch.no_grad():
+        #     rois, cls_prob, bbox_pred, \
+        #     rpn_loss_cls, rpn_loss_box, \
+        #     RCNN_loss_cls, RCNN_loss_bbox, \
+        #     rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
 
-        # rois, cls_prob, bbox_pred, \
-        # rpn_loss_cls, rpn_loss_box, \
-        # RCNN_loss_cls, RCNN_loss_bbox, \
-        # rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
+        rois, cls_prob, bbox_pred, \
+        rpn_loss_cls, rpn_loss_box, \
+        RCNN_loss_cls, RCNN_loss_bbox, \
+        rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
 
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
@@ -390,8 +407,7 @@ if __name__ == '__main__':
         det_toc = time.time()
         detect_time = det_toc - det_tic
         misc_tic = time.time()
-        if vis:
-            im2show = np.copy(frame_bgr)
+        im2show = np.copy(frame_bgr)
         for j in range(1, len(pascal_classes)):
             inds = torch.nonzero(scores[:, j] > thresh).view(-1)
             # if there is det
@@ -409,45 +425,29 @@ if __name__ == '__main__':
                 # keep = nms(cls_dets, cfg.TEST.NMS, force_cpu=not cfg.USE_GPU_NMS)
                 keep = nms(cls_boxes[order, :], cls_scores[order], cfg.TEST.NMS)
                 cls_dets = cls_dets[keep.view(-1).long()]
-                if vis:
-                    im2show = vis_detections(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.5)
+                # add boxes to img
+                im2show = vis_detections(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.5)
 
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
 
-        if not vis:
-            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
-                             .format(num_images + 1, num_frame, detect_time, nms_time))
-            sys.stdout.flush()
-
-        if vis and webcam_num == -1:
-            cv2.imshow('frame', cv2.resize(im2show, None, fx=0.3, fy=0.3))
+        if vis: 
+            cv2.imshow('frame', cv2.resize(im2show, None, fx=0.35, fy=0.35))
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
-            # result_path = os.path.join(args.image_dir, str(num_images) + "_det.jpg")
-            # cv2.imwrite(result_path, im2show)
-            videowriter.write(im2show)  # write one frame into the output video
-            # fps caulate
-            total_toc = time.time()
-            total_time = total_toc - total_tic
-            frame_rate = 1 / total_time
-            # need time caulate
-            need_time = num_images / frame_rate
-            # print sys
-            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz need_time: {:.3f}s \r' \
-                             .format(num_images + 1, num_frame, detect_time, nms_time, total_time, frame_rate, need_time))
-            sys.stdout.flush()
-
-        else:
-            cv2.imshow("frame", im2show)
-            videowriter.write(im2show)  # write one frame into the output video
-            # fps caulate
-            total_toc = time.time()
-            total_time = total_toc - total_tic
-            frame_rate = 1 / total_time
-            print('Frame rate: %.6f' % frame_rate)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+        # result_path = os.path.join(args.image_dir, str(num_images) + "_det.jpg")
+        # cv2.imwrite(result_path, im2show)
+        videowriter.write(im2show)  # write one frame into the output video
+        # fps caulate
+        total_toc = time.time()
+        total_time = total_toc - total_tic
+        frame_rate = 1 / total_time
+        # need time caulate
+        need_time = num_images / frame_rate
+        # print sys
+        sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz need_time: {:.3f}s \r' \
+                         .format(num_images + 1, num_frame, detect_time, nms_time, total_time, frame_rate, need_time))
+        sys.stdout.flush()
 
         # 清除缓存
         # torch.cuda.empty_cache()

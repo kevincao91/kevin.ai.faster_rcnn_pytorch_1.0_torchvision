@@ -24,14 +24,16 @@ We benchmark our code thoroughly on pascal voc datasets, using four different ne
 
 model    | #GPUs | batch size | lr  | lr_decay | max_epoch  |  time/epoch | mem/GPU | mAP
 ---------|-------|------------|-----|----------|------------|-------------|---------|-----
-Res-18   | 1     | 1          | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | N/A
-Res-18   | 1     | 6          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | 54.7
-Res-34   | 1     | 1          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | N/A
+Res-18   | 1     | 1          | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | 68.0
+Res-18   | 1     | 6          | 1e-3| 5        | 7          |  0.18 hr    | 4993 MB | 54.7
+Res-34   | 1     | 1          | 1e-3| 5        | 7          |  0.29 hr    | 1441 MB | 72.8
 Res-34   | 1     | 6          | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | 67.4
 Res-50   | 1     | 1          | 1e-3| 5        | 7          |  0.38 hr    | 1965 MB | 70.9
-Res-50   | 1     | 6          | 1e-3| 5        | 7          |  N/A  hr    | N/A  MB | N/A 
+Res-50   | 1     | 6          | 1e-3| 5        | 7          |  0.35 hr    | 7469 MB | 64.1 
 Res-101  | 1     | 1          | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB | 73.2  
 Res-101  | 1     | 6          | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0   
+Res-152  | 1     | 1          | 1e-3| 5        | 7          |  N/A hr    | N/A MB | N/A  
+Res-152  | 1     | 6          | 1e-3| 5        | 7          |  N/A hr    | N/A MB | N/A  
 
 * Our pre-trained model weight can simply import via torchvision.
 * If not mentioned, the GPU we used is NVIDIA Titan X Pascal (12GB).
@@ -79,7 +81,7 @@ res101
 ```
 wget https://download.pytorch.org/models/resnet101-5d3b4d8f.pth
 ```
-res151
+res152
 ```
 wget https://download.pytorch.org/models/resnet152-b121ed2d.pth
 ```
@@ -99,9 +101,7 @@ cd lib
 python setup.py build develop
 ```
 
-It will compile all the modules you need, including NMS, ROI_Pooing, ROI_Align and ROI_Crop. The default version is compiled with Python 2.7, please compile by yourself if you are using a different python version.
-
-**As pointed out in this [issue](https://github.com/jwyang/faster-rcnn.pytorch/issues/16), if you encounter some error during the compilation, you might miss to export the CUDA paths to your environment.**
+It will compile all the modules you need, including NMS, ROI_Pooing, ROI_Align. The default version is compiled with Python 3.6.
 
 ## Train
 
@@ -169,10 +169,21 @@ Below are some detection results:
 
 You can use a webcam in a real-time demo by running
 ```
-python demo.py --net vgg16 \
+python demo.py --net res101 \
                --checksession $SESSION --checkepoch $EPOCH --checkpoint $CHECKPOINT \
                --cuda --load_dir path/to/model/directoy \
                --webcam $WEBCAM_ID
+```
+The demo is stopped by clicking the image window and then pressing the 'q' key.
+
+## Video Demo
+
+You can read a video file and save result in a real-time demo by running
+```
+python video.py --net res101 \
+                --checksession $SESSION --checkepoch $EPOCH --checkpoint $CHECKPOINT \
+                --cuda --load_dir path/to/model/directoy \
+                --video $VIDEO_NAME
 ```
 The demo is stopped by clicking the image window and then pressing the 'q' key.
 

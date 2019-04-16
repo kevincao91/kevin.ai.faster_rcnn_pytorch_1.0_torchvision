@@ -374,7 +374,7 @@ def cfg_from_file(filename):
     import yaml
     with open(filename, 'r') as f:
         # yaml_cfg = edict(yaml.load(f))
-        yaml_cfg = edict(yaml.load(f, load=yaml.FullLoader))
+        yaml_cfg = edict(yaml.load(f, Loader=yaml.FullLoader))
 
     _merge_a_into_b(yaml_cfg, __C)
 
