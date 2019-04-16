@@ -178,12 +178,15 @@ if __name__ == '__main__':
     load_name = os.path.join(input_dir,
                              'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
 
+    # pascal_classes = np.asarray(['__background__',
+    #                              'aeroplane', 'bicycle', 'bird', 'boat',
+    #                              'bottle', 'bus', 'car', 'cat', 'chair',
+    #                              'cow', 'diningtable', 'dog', 'horse',
+    #                              'motorbike', 'person', 'pottedplant',
+    #                              'sheep', 'sofa', 'train', 'tvmonitor'])
+
     pascal_classes = np.asarray(['__background__',
-                                 'aeroplane', 'bicycle', 'bird', 'boat',
-                                 'bottle', 'bus', 'car', 'cat', 'chair',
-                                 'cow', 'diningtable', 'dog', 'horse',
-                                 'motorbike', 'person', 'pottedplant',
-                                 'sheep', 'sofa', 'train', 'tvmonitor'])
+                                 'face'])
 
     # initilize the network here.
     if args.net == 'vgg16':
@@ -282,20 +285,24 @@ if __name__ == '__main__':
         if webcam_num >= 0:
             if not cap.isOpened():
                 raise RuntimeError("Webcam could not open. Please check connection.")
-            ret, frame = cap.read()
-            im_in = np.array(frame)
+            ret, frame_bgr = cap.read()
+            im_bgr = np.array(frame_bgr)
+            # bgr -> rgb
+            im_rgb = im_bgr[:, :, ::-1]
         # Load the demo image
         else:
             im_file = os.path.join(args.image_dir, imglist[num_images])
             # im = cv2.imread(im_file)
-            im_in = np.array(imread(im_file))
-        if len(im_in.shape) == 2:
-            im_in = im_in[:, :, np.newaxis]
-            im_in = np.concatenate((im_in, im_in, im_in), axis=2)
-        # rgb -> bgr
-        im = im_in[:, :, ::-1]
+            im_rgb = np.array(imread(im_file))
+            # rgb -> bgr
+            im_bgr = im_rgb[:, :, ::-1]
+        if len(im_rgb.shape) == 2:
+            im_rgb = im_rgb[:, :, np.newaxis]
+            im_rgb = np.concatenate((im_rgb, im_rgb, im_rgb), axis=2)
+        # in image is rgb
+        im_in = im_rgb
 
-        blobs, im_scales = _get_image_blob(im)
+        blobs, im_scales = _get_image_blob(im_in)
         assert len(im_scales) == 1, "Only single-image batch implemented"
         im_blob = blobs
         im_info_np = np.array([[im_blob.shape[1], im_blob.shape[2], im_scales[0]]], dtype=np.float32)
@@ -368,7 +375,7 @@ if __name__ == '__main__':
         detect_time = det_toc - det_tic
         misc_tic = time.time()
         if vis:
-            im2show = np.copy(im)
+            im2show = np.copy(im_bgr)
         for j in xrange(1, len(pascal_classes)):
             inds = torch.nonzero(scores[:, j] > thresh).view(-1)
             # if there is det
@@ -403,12 +410,11 @@ if __name__ == '__main__':
             result_path = os.path.join(args.image_dir, imglist[num_images][:-4] + "_det.jpg")
             cv2.imwrite(result_path, im2show)
         else:
-            im2showRGB = cv2.cvtColor(im2show, cv2.COLOR_BGR2RGB)
-            cv2.imshow("frame", im2showRGB)
+            cv2.imshow("frame", im2show)
             total_toc = time.time()
             total_time = total_toc - total_tic
             frame_rate = 1 / total_time
-            print('Frame rate:', frame_rate)
+            print('Frame rate: %.6f' % frame_rate)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 

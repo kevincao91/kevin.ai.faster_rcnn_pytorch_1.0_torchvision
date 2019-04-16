@@ -173,15 +173,15 @@ if __name__ == '__main__':
     load_name = os.path.join(input_dir,
                              'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
 
-    pascal_classes = np.asarray(['__background__',
-                                 'aeroplane', 'bicycle', 'bird', 'boat',
-                                 'bottle', 'bus', 'car', 'cat', 'chair',
-                                 'cow', 'diningtable', 'dog', 'horse',
-                                 'motorbike', 'person', 'pottedplant',
-                                 'sheep', 'sofa', 'train', 'tvmonitor'])
-
     # pascal_classes = np.asarray(['__background__',
-    #                              'face'])
+    #                              'aeroplane', 'bicycle', 'bird', 'boat',
+    #                              'bottle', 'bus', 'car', 'cat', 'chair',
+    #                              'cow', 'diningtable', 'dog', 'horse',
+    #                              'motorbike', 'person', 'pottedplant',
+    #                              'sheep', 'sofa', 'train', 'tvmonitor'])
+
+    pascal_classes = np.asarray(['__background__',
+                                 'face'])
 
     # initilize the network here.
     if args.net == 'vgg16':
@@ -295,22 +295,23 @@ if __name__ == '__main__':
         if webcam_num >= 0:
             if not cap.isOpened():
                 raise RuntimeError("Webcam could not open. Please check connection.")
-            ret, frame = cap.read()
-            im_in = np.array(frame)
+            ret, frame_bgr = cap.read()
+            im_bgr = np.array(frame_bgr)
+            # bgr -> rgb
+            im_rgb = im_bgr[:, :, ::-1]
         # Load the demo image
         else:
             if not cap.isOpened():
                 raise RuntimeError("Video file could not open. Please check file path is ture.")
             # read one frame from the video
-            ret, frame = cap.read()
-            im_in = np.array(frame)
-        if len(im_in.shape) == 2:
-            im_in = im_in[:, :, np.newaxis]
-            im_in = np.concatenate((im_in, im_in, im_in), axis=2)
-        # rgb -> bgr
-        # im = im_in[:, :, ::-1]
-        # gray=cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        im = im_in
+            ret, frame_bgr = cap.read()
+            im_bgr = np.array(frame_bgr)
+            # bgr -> rgb
+            im_rgb = im_bgr[:, :, ::-1]
+            im_rgb = im_rgb[:, :, np.newaxis]
+            im_rgb = np.concatenate((im_rgb, im_rgb, im_rgb), axis=2)
+        # in image is rgb
+        im_in = im_rgb
 
         blobs, im_scales = _get_image_blob(im)
         assert len(im_scales) == 1, "Only single-image batch implemented"
@@ -339,6 +340,11 @@ if __name__ == '__main__':
             rpn_loss_cls, rpn_loss_box, \
             RCNN_loss_cls, RCNN_loss_bbox, \
             rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
+
+        # rois, cls_prob, bbox_pred, \
+        # rpn_loss_cls, rpn_loss_box, \
+        # RCNN_loss_cls, RCNN_loss_bbox, \
+        # rois_label = fasterRCNN(im_data, im_info, gt_boxes, num_boxes)
 
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
@@ -385,7 +391,7 @@ if __name__ == '__main__':
         detect_time = det_toc - det_tic
         misc_tic = time.time()
         if vis:
-            im2show = np.copy(im)
+            im2show = np.copy(frame_bgr)
         for j in range(1, len(pascal_classes)):
             inds = torch.nonzero(scores[:, j] > thresh).view(-1)
             # if there is det
@@ -409,30 +415,42 @@ if __name__ == '__main__':
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
 
-        if webcam_num == -1:
+        if not vis:
             sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
                              .format(num_images + 1, num_frame, detect_time, nms_time))
             sys.stdout.flush()
 
         if vis and webcam_num == -1:
-            # cv2.imshow('test', cv2.resize(im2show, None, fx=0.3, fy=0.3))
-            # if cv2.waitKey(10) & 0xFF == ord('q'):
-            #     break
+            cv2.imshow('frame', cv2.resize(im2show, None, fx=0.3, fy=0.3))
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
             # result_path = os.path.join(args.image_dir, str(num_images) + "_det.jpg")
             # cv2.imwrite(result_path, im2show)
             videowriter.write(im2show)  # write one frame into the output video
-        else:
-            im2showRGB = cv2.cvtColor(im2show, cv2.COLOR_BGR2RGB)
-            cv2.imshow("frame", im2showRGB)
+            # fps caulate
             total_toc = time.time()
             total_time = total_toc - total_tic
             frame_rate = 1 / total_time
-            print('Frame rate:', frame_rate)
+            # need time caulate
+            need_time = num_images / frame_rate
+            # print sys
+            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz need_time: {:.3f}s \r' \
+                             .format(num_images + 1, num_frame, detect_time, nms_time, total_time, frame_rate, need_time))
+            sys.stdout.flush()
+
+        else:
+            cv2.imshow("frame", im2show)
+            videowriter.write(im2show)  # write one frame into the output video
+            # fps caulate
+            total_toc = time.time()
+            total_time = total_toc - total_tic
+            frame_rate = 1 / total_time
+            print('Frame rate: %.6f' % frame_rate)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
         # 清除缓存
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
