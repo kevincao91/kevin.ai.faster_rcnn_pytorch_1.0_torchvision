@@ -221,7 +221,9 @@ def resnet152(pretrained=False):
 class resnet(_fasterRCNN):
     def __init__(self, classes, num_layers=101, pretrained=False, class_agnostic=False):
         self.dout_base_model = 1024
-        if num_layers == 101:
+        if num_layers == 152:
+            self.model_path = 'data/pretrained_model/resnet152-b121ed2d.pth'
+        elif num_layers == 101:
             self.model_path = 'data/pretrained_model/resnet101-5d3b4d8f.pth'
         elif num_layers == 50:
             self.model_path = 'data/pretrained_model/resnet50-19c8e357.pth'
@@ -239,7 +241,9 @@ class resnet(_fasterRCNN):
         _fasterRCNN.__init__(self, classes, class_agnostic)
 
     def _init_modules(self):
-        if self.num_layers == 101:
+        if self.num_layers == 152:
+            resnet = resnet152()
+        elif self.num_layers == 101:
             resnet = resnet101()
         elif self.num_layers == 50:
             resnet = resnet50()
