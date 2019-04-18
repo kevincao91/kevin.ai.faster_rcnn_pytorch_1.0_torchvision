@@ -32,8 +32,8 @@ Res-50   | 1     | 1          | 1e-3| 5        | 7          |  0.38 hr    | 1965
 Res-50   | 1     | 6          | 1e-3| 5        | 7          |  0.35 hr    | 7469 MB | 64.1 
 Res-101  | 1     | 1          | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB | 73.2  
 Res-101  | 1     | 6          | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0   
-Res-152  | 1     | 1          | 1e-3| 5        | 7          |  0.57 hr    | 4663 MB | 53.8  
-Res-152  | 1     | 2          | 1e-3| 5        | 7          |  0.45 hr    | 7387 MB | N/A 
+Res-152  | 1     | 1          | 1e-3| 5        | 7          |  0.57 hr    | 4663 MB | 74.3  
+Res-152  | 1     | 2          | 1e-3| 5        | 6          |  0.45 hr    | 7387 MB | 73.8 
 
 * Our pre-trained model weight can simply import via torchvision.
 * If not mentioned, the GPU we used is NVIDIA Titan X Pascal (12GB).
@@ -162,7 +162,7 @@ Then you will find the detection results in folder $ROOT/images.
 Below are some detection results:
 
 <div style="color:#0000FF" align="center">
-<img src="images/img1_det_res101.jpg" width="430"/> <img src="images/img3_det_res101.jpg" width="430"/>
+<img src="images/img1_det_res101.jpg" width="430"/> <img src="images/img5_det_res101.jpg" width="430"/>
 </div>
 
 ## Webcam Demo
