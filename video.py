@@ -169,7 +169,8 @@ if __name__ == '__main__':
                                      'motorbike', 'person', 'pottedplant',
                                      'sheep', 'sofa', 'train', 'tvmonitor'])
     elif args.dataset == "pascal_voc_face":
-        pascal_classes = None
+        pascal_classes = np.asarray(['__background__',
+                                     'face'])
     elif args.dataset == "pascal_voc_0712":
         pascal_classes = None
     elif args.dataset == "coco":
@@ -295,6 +296,8 @@ if __name__ == '__main__':
 
     print('Loaded Photo: {} images.'.format(num_images))
 
+    # 清理显卡缓存
+    torch.cuda.empty_cache()
     # 显示显存
     handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -426,7 +429,7 @@ if __name__ == '__main__':
                 keep = nms(cls_boxes[order, :], cls_scores[order], cfg.TEST.NMS)
                 cls_dets = cls_dets[keep.view(-1).long()]
                 # add boxes to img
-                im2show = vis_detections(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.5)
+                im2show = vis_detections_beautiful(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.7)
 
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic

@@ -31,7 +31,7 @@ from model.rpn.bbox_transform import clip_boxes
 # from model.nms.nms_wrapper import nms
 from model.roi_layers import nms
 from model.rpn.bbox_transform import bbox_transform_inv
-from model.utils.net_utils import save_net, load_net, vis_detections
+from model.utils.net_utils import save_net, load_net, vis_detections, vis_detections_beautiful
 from model.utils.blob import im_list_to_blob
 from model.faster_rcnn.vgg16 import vgg16
 from model.faster_rcnn.resnet import resnet
@@ -51,13 +51,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
     parser.add_argument('--dataset', dest='dataset',
                         help='training dataset',
-                        default='pascal_voc', type=str)
+                        default='pascal_voc_face', type=str)
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file',
-                        default='cfgs/res50.yml', type=str)
+                        default='cfgs/res18.yml', type=str)
     parser.add_argument('--net', dest='net',
                         help='vgg16, res50, res101, res152',
-                        default='res50', type=str)
+                        default='res18', type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
@@ -87,7 +87,7 @@ def parse_args():
                         default=7, type=int)
     parser.add_argument('--checkpoint', dest='checkpoint',
                         help='checkpoint to load network',
-                        default=10021, type=int)
+                        default=4451, type=int)
     parser.add_argument('--bs', dest='batch_size',
                         help='batch_size',
                         default=1, type=int)
@@ -131,15 +131,19 @@ def _get_image_blob(im):
     processed_ims = []
     im_scale_factors = []
 
-    for target_size in cfg.TEST.SCALES:
-        im_scale = float(target_size) / float(im_size_min)
-        # Prevent the biggest axis from being more than MAX_SIZE
-        if np.round(im_scale * im_size_max) > cfg.TEST.MAX_SIZE:
-            im_scale = float(cfg.TEST.MAX_SIZE) / float(im_size_max)
-        im = cv2.resize(im_orig, None, None, fx=im_scale, fy=im_scale,
-                        interpolation=cv2.INTER_LINEAR)
-        im_scale_factors.append(im_scale)
-        processed_ims.append(im)
+    # for target_size in cfg.TEST.SCALES:
+    #     im_scale = float(target_size) / float(im_size_min)
+    #     # Prevent the biggest axis from being more than MAX_SIZE
+    #     if np.round(im_scale * im_size_max) > cfg.TEST.MAX_SIZE:
+    #         im_scale = float(cfg.TEST.MAX_SIZE) / float(im_size_max)
+    #     im = cv2.resize(im_orig, None, None, fx=im_scale, fy=im_scale,
+    #                     interpolation=cv2.INTER_LINEAR)
+    #     im_scale_factors.append(im_scale)
+    #     processed_ims.append(im)
+
+    # no need to change size
+    im_scale_factors.append(1.0)
+    processed_ims.append(im_orig)
 
     # Create a blob to hold the input images
     blob = im_list_to_blob(processed_ims)
@@ -157,6 +161,29 @@ if __name__ == '__main__':
 
     print('Called with args:')
     print(args)
+
+    if torch.cuda.is_available() and not args.cuda:
+        print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+
+    np.random.seed(cfg.RNG_SEED)
+    if args.dataset == "pascal_voc":
+        pascal_classes = np.asarray(['__background__',
+                                     'aeroplane', 'bicycle', 'bird', 'boat',
+                                     'bottle', 'bus', 'car', 'cat', 'chair',
+                                     'cow', 'diningtable', 'dog', 'horse',
+                                     'motorbike', 'person', 'pottedplant',
+                                     'sheep', 'sofa', 'train', 'tvmonitor'])
+    elif args.dataset == "pascal_voc_face":
+        pascal_classes = np.asarray(['__background__',
+                                     'face'])
+    elif args.dataset == "pascal_voc_0712":
+        pascal_classes = None
+    elif args.dataset == "coco":
+        pascal_classes = None
+    elif args.dataset == "imagenet":
+        pascal_classes = None
+    elif args.dataset == "vg":
+        pascal_classes = None
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
@@ -177,16 +204,6 @@ if __name__ == '__main__':
         raise Exception('There is no input directory for loading network from ' + input_dir)
     load_name = os.path.join(input_dir,
                              'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
-
-    # pascal_classes = np.asarray(['__background__',
-    #                              'aeroplane', 'bicycle', 'bird', 'boat',
-    #                              'bottle', 'bus', 'car', 'cat', 'chair',
-    #                              'cow', 'diningtable', 'dog', 'horse',
-    #                              'motorbike', 'person', 'pottedplant',
-    #                              'sheep', 'sofa', 'train', 'tvmonitor'])
-
-    pascal_classes = np.asarray(['__background__',
-                                 'face'])
 
     # initilize the network here.
     if args.net == 'vgg16':
@@ -266,10 +283,13 @@ if __name__ == '__main__':
         num_images = 0
     else:
         imglist = os.listdir(args.image_dir)
-        num_images = len(imglist)
+        num_frame = len(imglist)
+        num_images = num_frame
 
     print('Loaded Photo: {} images.'.format(num_images))
 
+    # 清理显卡缓存
+    torch.cuda.empty_cache()
     # 显示显存
     handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
     meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -315,7 +335,7 @@ if __name__ == '__main__':
         im_info.resize_(im_info_pt.size()).copy_(im_info_pt)
         gt_boxes.resize_(1, 1, 5).zero_()
         num_boxes.resize_(1).zero_()
-
+        
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)    
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -374,8 +394,7 @@ if __name__ == '__main__':
         det_toc = time.time()
         detect_time = det_toc - det_tic
         misc_tic = time.time()
-        if vis:
-            im2show = np.copy(im_bgr)
+        im2show = np.copy(im_bgr)
         for j in xrange(1, len(pascal_classes)):
             inds = torch.nonzero(scores[:, j] > thresh).view(-1)
             # if there is det
@@ -393,32 +412,42 @@ if __name__ == '__main__':
                 # keep = nms(cls_dets, cfg.TEST.NMS, force_cpu=not cfg.USE_GPU_NMS)
                 keep = nms(cls_boxes[order, :], cls_scores[order], cfg.TEST.NMS)
                 cls_dets = cls_dets[keep.view(-1).long()]
-                if vis:
-                    im2show = vis_detections(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.5)
+                # add boxes to img
+                im2show = vis_detections_beautiful(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.7)
 
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
 
-        if webcam_num == -1:
-            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
-                             .format(num_images + 1, len(imglist), detect_time, nms_time))
-            sys.stdout.flush()
+        if vis and webcam_num >= 0: 
+            cv2.imshow('frame', cv2.resize(im2show, None, fx=1.0, fy=1.0))
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
 
-        if vis and webcam_num == -1:
-            # cv2.imshow('test', im2show)
-            # cv2.waitKey(0)
+        if webcam_num == -1:
             result_path = os.path.join(args.image_dir, imglist[num_images][:-4] + "_det.jpg")
             cv2.imwrite(result_path, im2show)
-        else:
-            cv2.imshow("frame", im2show)
+            # fps caulate
             total_toc = time.time()
             total_time = total_toc - total_tic
             frame_rate = 1 / total_time
-            print('Frame rate: %.6f' % frame_rate)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # need time caulate
+            need_time = num_images / frame_rate
+            # print sys
+            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz need_time: {:.3f}s \r' \
+                             .format(num_images + 1, num_frame, detect_time, nms_time, total_time, frame_rate, need_time))
+            sys.stdout.flush()
+        else:
+            # fps caulate
+            total_toc = time.time()
+            total_time = total_toc - total_tic
+            frame_rate = 1 / total_time
+            # print sys
+            sys.stdout.write('im_detect: {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz \r' \
+                             .format(detect_time, nms_time, total_time, frame_rate))
+            sys.stdout.flush()
 
-        # torch.cuda.empty_cache()
+        # 清理显卡缓存
+        torch.cuda.empty_cache()
         # 显示显存
         # handle = pynvml.nvmlDeviceGetHandleByIndex(GPU_id)
         # meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
