@@ -22,18 +22,18 @@ We benchmark our code thoroughly on pascal voc datasets, using four different ne
 
 1). PASCAL VOC 2007 (Train/Test: 07trainval/07test, scale=600, ROI Align)
 
-model    | #GPUs | batch size | lr  | lr_decay | max_epoch  |  time/epoch | mem/GPU | mAP
----------|-------|------------|-----|----------|------------|-------------|---------|-----
-Res-18   | 1     | 1          | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | 68.0
-Res-18   | 1     | 6          | 1e-3| 5        | 7          |  0.18 hr    | 4993 MB | 54.7
-Res-34   | 1     | 1          | 1e-3| 5        | 7          |  0.29 hr    | 1441 MB | 72.8
-Res-34   | 1     | 6          | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | 67.4
-Res-50   | 1     | 1          | 1e-3| 5        | 7          |  0.38 hr    | 1965 MB | 70.9
-Res-50   | 1     | 6          | 1e-3| 5        | 7          |  0.35 hr    | 7469 MB | 64.1 
-Res-101  | 1     | 1          | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB | 73.2  
-Res-101  | 1     | 6          | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0   
-Res-152  | 1     | 1          | 1e-3| 5        | 7          |  0.57 hr    | 4663 MB | 74.3  
-Res-152  | 1     | 2          | 1e-3| 5        | 6          |  0.45 hr    | 7387 MB | 73.8 
+model    | #GPUs | batch | lr  | lr decay | max epoch  |  time/epoch | mem/GPU | mAP  | test fps   |
+---------|-------|-------|-----|----------|------------|-------------|---------|------|------------|
+Res-18   | 1     | 1     | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | 68.0 |  13.0+-6.0 |
+Res-18   | 1     | 6     | 1e-3| 5        | 7          |  0.18 hr    | 4993 MB | 54.7 |  13.0+-6.0 |
+Res-34   | 1     | 1     | 1e-3| 5        | 7          |  0.29 hr    | 1441 MB | 72.8 |  10.5+-3.0 |
+Res-34   | 1     | 6     | 1e-3| 5        | 7          |  0.24 hr    | 4813 MB | 67.4 |  10.5+-3.0 |
+Res-50   | 1     | 1     | 1e-3| 5        | 7          |  0.38 hr    | 1965 MB | 70.9 |  7.0+-3.0  |
+Res-50   | 1     | 6     | 1e-3| 5        | 7          |  0.35 hr    | 7469 MB | 64.1 |  7.0+-3.0  |
+Res-101  | 1     | 1     | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB | 73.2 |  4.3+-1.0  | 
+Res-101  | 1     | 6     | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0 |  4.3+-1.0  |  
+Res-152  | 1     | 1     | 1e-3| 5        | 7          |  0.57 hr    | 4663 MB | 74.3 |  4.0+-1.0  |
+Res-152  | 1     | 2     | 1e-3| 5        | 6          |  0.45 hr    | 7387 MB | 73.8 |  4.0+-1.0  |
 
 * Our pre-trained model weight can simply import via torchvision.
 * If not mentioned, the GPU we used is NVIDIA Titan X Pascal (12GB).

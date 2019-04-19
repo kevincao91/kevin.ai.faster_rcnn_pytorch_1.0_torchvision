@@ -50,7 +50,7 @@ def parse_args():
                         default='pascal_voc', type=str)
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file',
-                        default='cfgs/vgg16.yml', type=str)
+                        default='cfgs/res18.yml', type=str)
     parser.add_argument('--net', dest='net',
                         help='vgg16, res50, res101, res152',
                         default='res101', type=str)
@@ -236,8 +236,10 @@ if __name__ == '__main__':
 
     fasterRCNN.eval()
     empty_array = np.transpose(np.array([[], [], [], [], []]), (1, 0))
+    
+    num_frame = num_images
     for i in range(num_images):
-
+        total_tic = time.time()
         data = next(data_iter)
         im_data.data.resize_(data[0].size()).copy_(data[0])
         im_info.data.resize_(data[1].size()).copy_(data[1])
@@ -318,8 +320,16 @@ if __name__ == '__main__':
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
 
-        sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
-                         .format(i + 1, num_images, detect_time, nms_time))
+        # fps caulate
+        total_toc = time.time()
+        total_time = total_toc - total_tic
+        frame_rate = 1 / total_time
+        # need time caulate
+        need_time = num_images / frame_rate
+
+        # print sys
+        sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s {:.3f}s  fps: {:.3f} Hz need_time: {:.3f}s \r' \
+                         .format(num_images + 1, num_frame, detect_time, nms_time, total_time, frame_rate, need_time))
         sys.stdout.flush()
 
         if vis:
