@@ -1,11 +1,8 @@
 # --------------------------------------------------------
-# Pytorch multi-GPU Faster R-CNN
+# PyTorch Faster R-CNN
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Jiasen Lu, Jianwei Yang, based on code from Ross Girshick
+# Written by Kevin Cao, based on code from Jianwei Yang
 # --------------------------------------------------------
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 import _init_paths
 import os

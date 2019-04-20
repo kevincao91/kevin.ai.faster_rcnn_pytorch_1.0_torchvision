@@ -1,11 +1,8 @@
 # --------------------------------------------------------
-# Pytorch multi-GPU Faster R-CNN
+# PyTorch Faster R-CNN
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Jiasen Lu, Jianwei Yang, based on code from Ross Girshick
+# Written by Kevin Cao, based on code from Jianwei Yang
 # --------------------------------------------------------
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 import _init_paths
 import os
@@ -315,12 +312,12 @@ if __name__ == '__main__':
     # 设置学习率下降策略
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                            mode='min',
-                                                           factor=0.618,
-                                                           patience=20,
+                                                           factor=0.1,
+                                                           patience=15,
                                                            verbose=True,
                                                            threshold=0.005,
                                                            threshold_mode='rel',
-                                                           cooldown=10,
+                                                           cooldown=5,
                                                            min_lr=0, eps=1e-08)
 
     # 开始迭代训练
@@ -401,6 +398,9 @@ if __name__ == '__main__':
                 start = time.time()
                 # 更新学习率
                 scheduler.step(loss_temp)
+            # 达到最小lr，跳出
+            if lr_now == 1e-08:
+                break
 
         save_name = os.path.join(output_dir, 'faster_rcnn_{}_{}_{}.pth'.format(args.session, epoch, step))
         save_checkpoint({
