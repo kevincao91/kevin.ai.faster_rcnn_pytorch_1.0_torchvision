@@ -1,6 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# --------------------------------------------------------
+# PyTorch Faster R-CNN
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Kevin Cao, based on code from Jianwei Yang
+# --------------------------------------------------------
+
 
 from model.utils.config import cfg
 from model.faster_rcnn.faster_rcnn import _fasterRCNN
@@ -26,7 +29,7 @@ model_urls = {
 
 
 def conv3x3(in_planes, out_planes, stride=1):
-    "3x3 convolution with padding"
+    """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
@@ -252,7 +255,7 @@ class resnet(_fasterRCNN):
         elif self.num_layers == 18:
             resnet = resnet18()
 
-        if self.pretrained == True:
+        if self.pretrained:
             print("Loading pretrained weights from %s" % (self.model_path))
             state_dict = torch.load(self.model_path)
             resnet.load_state_dict({k: v for k, v in state_dict.items() if k in resnet.state_dict()})

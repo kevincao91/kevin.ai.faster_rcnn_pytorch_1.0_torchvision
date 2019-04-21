@@ -1,3 +1,10 @@
+# --------------------------------------------------------
+# PyTorch Faster R-CNN
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Kevin Cao, based on code from Jianwei Yang
+# --------------------------------------------------------
+
+
 # Code referenced from https://gist.github.com/gyglim/1f8dfb1b5c82627ae3efcfbbadb9f514
 import tensorflow as tf
 import numpy as np

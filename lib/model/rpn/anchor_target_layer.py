@@ -1,13 +1,9 @@
-from __future__ import absolute_import
 # --------------------------------------------------------
-# Faster R-CNN
-# Copyright (c) 2015 Microsoft
+# PyTorch Faster R-CNN
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick and Sean Bell
+# Written by Kevin Cao, based on code from Jianwei Yang
 # --------------------------------------------------------
-# --------------------------------------------------------
-# Reorganized and modified by Jianwei Yang and Jiasen Lu
-# --------------------------------------------------------
+
 
 import torch
 import torch.nn as nn

@@ -269,7 +269,7 @@ class pascal_voc_face(imdb):
     def _get_voc_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
         filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
-        filedir = os.path.join(self._devkit_path, 'results', 'VOC' + self._year, 'Main')
+        filedir = os.path.join(self._devkit_path, 'results', 'VOCFace' + self._year, 'Main')
         if not os.path.exists(filedir):
             os.makedirs(filedir)
         path = os.path.join(filedir, filename)
@@ -296,19 +296,19 @@ class pascal_voc_face(imdb):
     def _do_python_eval(self, output_dir='output'):
         annopath = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
+            'VOCFace' + self._year,
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
+            'VOCFace' + self._year,
             'ImageSets',
             'Main',
             self._image_set + '.txt')
         cachedir = os.path.join(self._devkit_path, 'annotations_cache')
         aps = []
         # The PASCAL VOC metric changed in 2010
-        use_07_metric = True if int(self._year) < 2010 else False
+        use_07_metric = True if int(self._year) <= 2010 else False
         print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)

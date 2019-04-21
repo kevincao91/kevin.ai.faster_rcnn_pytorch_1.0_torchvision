@@ -32,11 +32,6 @@ from model.faster_rcnn.resnet import resnet
 import pdb
 import glob
 
-try:
-    xrange  # Python 2
-except NameError:
-    xrange = range  # Python 3
-
 
 def parse_args():
     """
@@ -225,8 +220,8 @@ if __name__ == '__main__':
 
         save_name = 'faster_rcnn_10'
         num_images = len(imdb.image_index)
-        all_boxes = [[[] for _ in xrange(num_images)]
-                     for _ in xrange(imdb.num_classes)]
+        all_boxes = [[[] for _ in range(num_images)]
+                     for _ in range(imdb.num_classes)]
 
         output_dir = get_output_dir(imdb, save_name)
         dataset = roibatchLoader(roidb, ratio_list, ratio_index, 1,
@@ -289,7 +284,7 @@ if __name__ == '__main__':
             if vis:
                 im = cv2.imread(imdb.image_path_at(i))
                 im2show = np.copy(im)
-            for j in xrange(1, imdb.num_classes):
+            for j in range(1, imdb.num_classes):
                 inds = torch.nonzero(scores[:, j] > thresh).view(-1)
                 # if there is det
                 if inds.numel() > 0:
@@ -314,10 +309,10 @@ if __name__ == '__main__':
             # Limit to max_per_image detections *over all classes*
             if max_per_image > 0:
                 image_scores = np.hstack([all_boxes[j][i][:, -1]
-                                          for j in xrange(1, imdb.num_classes)])
+                                          for j in range(1, imdb.num_classes)])
                 if len(image_scores) > max_per_image:
                     image_thresh = np.sort(image_scores)[-max_per_image]
-                    for j in xrange(1, imdb.num_classes):
+                    for j in range(1, imdb.num_classes):
                         keep = np.where(all_boxes[j][i][:, -1] >= image_thresh)[0]
                         all_boxes[j][i] = all_boxes[j][i][keep, :]
 

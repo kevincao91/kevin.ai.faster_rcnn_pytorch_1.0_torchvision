@@ -1,11 +1,13 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# --------------------------------------------------------
+# PyTorch Faster R-CNN
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Kevin Cao, based on code from Jianwei Yang
+# --------------------------------------------------------
+
 
 import os
 import os.path as osp
 import numpy as np
-# `pip install easydict` if you don't have it
 from easydict import EasyDict as edict
 
 __C = edict()
