@@ -14,6 +14,8 @@ During our implementing, we referred many implementations, especially  [jwyang/f
 
 * **It is memory efficient**. We use the no grad model during the demo.
 
+* **It is use auto training process**. We give a more simple training control in our implementation, only focus on lr_inti, lr_gama and max_epoch.
+
 * **It is support pytorch-1.0**. We change the code to run faster R-CNN in pytorch-1.0.
 
 ## Benchmarking

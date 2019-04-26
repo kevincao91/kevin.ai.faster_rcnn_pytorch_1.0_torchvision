@@ -393,14 +393,10 @@ if __name__ == '__main__':
                     }
                     logger.add_scalars("logs_s_{}/losses".format(args.session), info,
                                        (epoch - 1) * iters_per_epoch + step)
-
-                loss_temp = 0
-                start = time.time()
                 # 更新学习率
                 scheduler.step(loss_temp)
-            # 达到最小lr，跳出
-            if lr_now == 1e-08:
-                break
+                loss_temp = 0
+                start = time.time()
 
         save_name = os.path.join(output_dir, 'faster_rcnn_{}_{}_{}.pth'.format(args.session, epoch, step))
         save_checkpoint({
@@ -412,6 +408,12 @@ if __name__ == '__main__':
             'class_agnostic': args.class_agnostic,
         }, save_name)
         print('save model: {}'.format(save_name))
+
+        # 达到最小lr，跳出
+        lr_now = [group['lr'] for group in optimizer.param_groups][0]
+        print('监测 lr : ', lr_now)
+        if lr_now <= 1e-08:
+            break
 
     if args.use_tfboard:
         logger.close()
