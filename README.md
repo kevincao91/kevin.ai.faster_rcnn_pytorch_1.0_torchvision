@@ -22,9 +22,9 @@ During our implementing, we referred many implementations, especially  [jwyang/f
 
 We benchmark our code thoroughly on pascal voc datasets, using four different network architecture: resnet18, resnet34, resnet50, resnet101. Below are the results:
 
-1). PASCAL VOC 2007 (Train/Test: 07trainval/07test, scale=600, ROI Align)
+1). PASCAL VOC 2007 (Train/Test: 07trainval/07test, scale=600, ROI Align) by run trainval_net.py
 
-model    | #GPUs | batch | lr  | lr decay | max epoch  |  time/epoch | mem/GPU | mAP  | test fps  |
+model    | #GPUs | batch | lr  | lr step  | max epoch  |  time/epoch | mem/GPU | mAP  | test fps  |
 ---------|-------|-------|-----|----------|------------|-------------|---------|------|-----------|
 Res-18   | 1     | 1     | 1e-3| 5        | 7          |  0.21 hr    | 1249 MB | 68.0 |  13.0±6.0 |
 Res-18   | 1     | 6     | 1e-3| 5        | 7          |  0.18 hr    | 4993 MB | 54.7 |  13.0±6.0 |
@@ -36,6 +36,21 @@ Res-101  | 1     | 1     | 1e-3| 5        | 7          |  0.42 hr    | 3221 MB
 Res-101  | 1     | 6     | 1e-3| 5        | 7          |  0.33 hr    | 11925MB | 69.0 |  4.3±1.0  |  
 Res-152  | 1     | 1     | 1e-3| 5        | 7          |  0.57 hr    | 4663 MB | 74.3 |  4.0±1.0  |
 Res-152  | 1     | 2     | 1e-3| 5        | 6          |  0.45 hr    | 7387 MB | 73.8 |  4.0±1.0  |
+
+1). PASCAL VOC 2007 (Train/Test: 07trainval/07test, scale=600, ROI Align) by run auto_trainval_net.py
+
+model    | #GPUs | batch | lr  | lr gamma | lr patience|  time/epoch | mem/GPU | mAP  | test fps  |
+---------|-------|-------|-----|----------|------------|-------------|---------|------|-----------|
+Res-18   | 1     | 1     | 1e-3| 0.618    | 5          |  0.21 hr    | 1249 MB | 68.0 |  13.0±6.0 |
+Res-18   | 1     | 6     | 1e-3| 0.618    | 5          |  0.18 hr    | 4993 MB | 54.7 |  13.0±6.0 |
+Res-34   | 1     | 1     | 1e-3| 0.618    | 5          |  0.29 hr    | 1441 MB | 72.8 |  10.5±3.0 |
+Res-34   | 1     | 6     | 1e-3| 0.618    | 5          |  0.24 hr    | 4813 MB | 67.4 |  10.5±3.0 |
+Res-50   | 1     | 1     | 1e-3| 0.618    | 5          |  0.38 hr    | 1965 MB | 70.9 |  7.0±3.0  |
+Res-50   | 1     | 6     | 1e-3| 0.618    | 5          |  0.35 hr    | 7469 MB | 64.1 |  7.0±3.0  |
+Res-101  | 1     | 1     | 1e-3| 0.618    | 5          |  0.42 hr    | 3221 MB | 73.2 |  4.3±1.0  | 
+Res-101  | 1     | 6     | 1e-3| 0.618    | 5          |  0.33 hr    | 11925MB | 69.0 |  4.3±1.0  |  
+Res-152  | 1     | 1     | 1e-3| 0.618    | 5          |  0.57 hr    | 4663 MB | 74.3 |  4.0±1.0  |
+Res-152  | 1     | 2     | 1e-3| 0.618    | 5          |  0.45 hr    | 7387 MB | 73.8 |  4.0±1.0  |
 
 * Our pre-trained model weight can simply import via torchvision.
 * If not mentioned, the GPU we used is NVIDIA Titan X Pascal (12GB).
@@ -117,6 +132,17 @@ CUDA_VISIBLE_DEVICES=$GPU_ID python trainval_net.py \
                    --lr $LEARNING_RATE --lr_decay_step $DECAY_STEP \
                    --cuda
 ```
+
+To auto train a faster R-CNN model with resnet50 on pascal_voc, simply run:
+```
+CUDA_VISIBLE_DEVICES=$GPU_ID python auto_trainval_net.py \
+                   --dataset pascal_voc --net res50 \
+                   --bs $BATCH_SIZE --nw $WORKER_NUMBER \
+                   --lr $LEARNING_RATE --lr_decay_gamma $DECAY_GAMMA \
+                   --lr_decay_patience $DECAY_PATIENCE \
+                   --cuda
+```
+
 where 'bs' is the batch size with default 1. Alternatively, to train with resnet101 on pascal_voc, simple run:
 ```
  CUDA_VISIBLE_DEVICES=$GPU_ID python trainval_net.py \
@@ -147,6 +173,18 @@ python test_net.py --dataset pascal_voc --net res101 \
                    --cuda
 ```
 Specify the specific model session, chechepoch and checkpoint, e.g., SESSION=1, EPOCH=6, CHECKPOINT=416.
+
+We give a auto code to evlauate the detection performance of a trained model in one session , just simply run
+```
+python auto_test_net.py --dataset pascal_voc --net res18 \
+                   --checksession $SESSION --checkepoch $EPOCH --checkpoint $CHECKPOINT \
+                   --cuda
+```
+And you will get a figure with test result in models dir.
+
+<div style="color:#0000FF" align="center">
+<img src="models/res18/pascal_voc/session_3_auto_test_result.jpg" width="430"/> <img src="models/res18/pascal_voc/session_4_auto_test_result.jpg" width="430"/>
+</div>
 
 ## Demo
 

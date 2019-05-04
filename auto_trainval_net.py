@@ -41,9 +41,9 @@ def parse_args():
     #                     default='pascal_voc', type=str)
     parser.add_argument('--dataset', dest='dataset',
                         help='training dataset',
-                        default='pascal_voc_face', type=str)
+                        default='pascal_voc', type=str)
     parser.add_argument('--net', dest='net',
-                        help='res50, res101',
+                        help='vgg16, res18, res34, res50, res101, res152',
                         default='res18', type=str)
     parser.add_argument('--start_epoch', dest='start_epoch',
                         help='starting epoch',
@@ -87,12 +87,15 @@ def parse_args():
     parser.add_argument('--lr', dest='lr',
                         help='starting learning rate',
                         default=0.001, type=float)
-    parser.add_argument('--lr_decay_step', dest='lr_decay_step',
-                        help='step to do learning rate decay, unit is epoch',
+    # parser.add_argument('--lr_decay_step', dest='lr_decay_step', 
+    #                     help='step to do learning rate decay, unit is epoch',
+    #                     default=5, type=int)
+    parser.add_argument('--lr_decay_patience', dest='lr_decay_patience',
+                        help='max patience step to do learning rate decay',
                         default=5, type=int)
     parser.add_argument('--lr_decay_gamma', dest='lr_decay_gamma',
                         help='learning rate decay ratio',
-                        default=0.1, type=float)
+                        default=0.618, type=float)
 
     # set training session
     parser.add_argument('--s', dest='session',
@@ -158,9 +161,9 @@ if __name__ == '__main__':
         args.imdb_name = "voc_2007_trainval"
         args.imdbval_name = "voc_2007_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '20']
-    elif args.dataset == "pascal_voc_face":
-        args.imdb_name = "voc_face_2010_trainval"
-        args.imdbval_name = "voc_face_2010_test"
+    elif args.dataset == "pascal_voc_2012":
+        args.imdb_name = "voc_2012_trainval"
+        args.imdbval_name = "voc_2012_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '20']
     elif args.dataset == "pascal_voc_0712":
         args.imdb_name = "voc_2007_trainval+voc_2012_trainval"
@@ -182,9 +185,6 @@ if __name__ == '__main__':
         args.set_cfgs = ['ANCHOR_SCALES', '[4, 8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '50']
 
     args.cfg_file = "cfgs/{}_ls.yml".format(args.net) if args.large_scale else "cfgs/{}.yml".format(args.net)
-
-    if args.dataset == "pascal_voc_face":
-        cfg_from_file("cfgs/pascal_voc_face.yml")
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
@@ -312,8 +312,8 @@ if __name__ == '__main__':
     # 设置学习率下降策略
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                            mode='min',
-                                                           factor=0.1,
-                                                           patience=15,
+                                                           factor=args.lr_decay_gamma,
+                                                           patience=args.lr_decay_patience,
                                                            verbose=True,
                                                            threshold=0.005,
                                                            threshold_mode='rel',
@@ -412,7 +412,8 @@ if __name__ == '__main__':
         # 达到最小lr，跳出
         lr_now = [group['lr'] for group in optimizer.param_groups][0]
         print('监测 lr : ', lr_now)
-        if lr_now <= 1e-08:
+        if lr_now <= 0.000001:   # lr  training with lr from 1e-03 to 1e-06
+            print('training over.')
             break
 
     if args.use_tfboard:

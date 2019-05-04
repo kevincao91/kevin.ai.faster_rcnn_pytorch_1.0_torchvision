@@ -48,12 +48,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
     parser.add_argument('--dataset', dest='dataset',
                         help='training dataset',
-                        default='pascal_voc_face', type=str)
+                        default='pascal_voc', type=str)
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file',
                         default='cfgs/res18.yml', type=str)
     parser.add_argument('--net', dest='net',
-                        help='vgg16, res50, res101, res152',
+                        help='vgg16, res18, res34, res50, res101, res152',
                         default='res18', type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
@@ -170,17 +170,14 @@ if __name__ == '__main__':
                                      'cow', 'diningtable', 'dog', 'horse',
                                      'motorbike', 'person', 'pottedplant',
                                      'sheep', 'sofa', 'train', 'tvmonitor'])
-    elif args.dataset == "pascal_voc_face":
-        pascal_classes = np.asarray(['__background__',
-                                     'face'])
     elif args.dataset == "pascal_voc_0712":
-        pascal_classes = None
+        pascal_classes = None   # 添加类名
     elif args.dataset == "coco":
-        pascal_classes = None
+        pascal_classes = None   # 添加类名
     elif args.dataset == "imagenet":
-        pascal_classes = None
+        pascal_classes = None   # 添加类名
     elif args.dataset == "vg":
-        pascal_classes = None
+        pascal_classes = None   # 添加类名
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)

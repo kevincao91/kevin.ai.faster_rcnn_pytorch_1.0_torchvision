@@ -41,7 +41,7 @@ def parse_args():
     """
   Parse input arguments
   """
-    parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
+    parser = argparse.ArgumentParser(description='Train a Faster R-CNN network')
     parser.add_argument('--dataset', dest='dataset',
                         help='training dataset',
                         default='pascal_voc', type=str)
@@ -49,7 +49,7 @@ def parse_args():
                         help='optional config file',
                         default='cfgs/res18.yml', type=str)
     parser.add_argument('--net', dest='net',
-                        help='vgg16, res50, res101, res152',
+                        help='vgg16, res18, res34, res50, res101, res152',
                         default='res101', type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
@@ -107,9 +107,9 @@ if __name__ == '__main__':
         args.imdb_name = "voc_2007_trainval"
         args.imdbval_name = "voc_2007_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]']
-    elif args.dataset == "pascal_voc_face":
-        args.imdb_name = "voc_face_2010_trainval"
-        args.imdbval_name = "voc_face_2010_test"
+    elif args.dataset == "pascal_voc_2012":
+        args.imdb_name = "voc_2012_trainval"
+        args.imdbval_name = "voc_2012_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]']
     elif args.dataset == "pascal_voc_0712":
         args.imdb_name = "voc_2007_trainval+voc_2012_trainval"
@@ -129,9 +129,6 @@ if __name__ == '__main__':
         args.set_cfgs = ['ANCHOR_SCALES', '[4, 8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]']
 
     args.cfg_file = "cfgs/{}_ls.yml".format(args.net) if args.large_scale else "cfgs/{}.yml".format(args.net)
-
-    if args.dataset == "pascal_voc_face":
-        cfg_from_file("cfgs/pascal_voc_face.yml")
 
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)

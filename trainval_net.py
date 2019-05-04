@@ -41,9 +41,9 @@ def parse_args():
     #                     default='pascal_voc', type=str)
     parser.add_argument('--dataset', dest='dataset',
                         help='training dataset',
-                        default='pascal_voc_face', type=str)
+                        default='pascal_voc', type=str)
     parser.add_argument('--net', dest='net',
-                        help='res50, res101',
+                        help='vgg16, res18, res34, res50, res101, res152',
                         default='res18', type=str)
     parser.add_argument('--start_epoch', dest='start_epoch',
                         help='starting epoch',
@@ -158,9 +158,9 @@ if __name__ == '__main__':
         args.imdb_name = "voc_2007_trainval"
         args.imdbval_name = "voc_2007_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '20']
-    elif args.dataset == "pascal_voc_face":
-        args.imdb_name = "voc_face_2010_trainval"
-        args.imdbval_name = "voc_face_2010_test"
+    elif args.dataset == "pascal_voc_2012":
+        args.imdb_name = "voc_2012_trainval"
+        args.imdbval_name = "voc_2012_test"
         args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '20']
     elif args.dataset == "pascal_voc_0712":
         args.imdb_name = "voc_2007_trainval+voc_2012_trainval"
